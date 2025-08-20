@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lern- und LZK-Trainer</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <!-- Sprachwahl: Button + Dropdown + Container fürs Google-Widget -->
+  <button id="langToggle" class="lang-toggle" aria-haspopup="listbox" aria-expanded="false" aria-label="Sprache auswählen">🌐</button>
+  <div id="langMenu" class="lang-menu" role="listbox" aria-label="Sprachauswahl" hidden></div>
+  <div id="google_translate_element" style="display:none;"></div>
+
+  <!-- Bestehende Buttons -->
+  <button id="themeToggle" class="theme-toggle" aria-label="Theme umschalten">🌓</button>
+  <button id="adminMenuToggle" class="admin-menu-toggle" aria-label="Adminmenü öffnen">☰</button>
+
+  <div id="adminMenu" class="admin-menu">
+    <div class="admin-menu-header">Admin-Bereich</div>
+    <a href="#" class="admin-menu-item active" data-section="userManagement">Benutzerverwaltung</a>
+    <a href="#" class="admin-menu-item" data-section="tempUsers">Temporäre Benutzer</a>
+    <a href="#" class="admin-menu-item" data-section="fileUpload">Dateien hochladen</a>
+    <a href="#" class="admin-menu-item" data-section="fileEdit">Dateien bearbeiten</a>
+    <a href="#" class="admin-menu-item" data-section="backToMain">Zurück zum Hauptmenü</a>
+  </div>
+
+  <div id="loginContainer">
+    <h1 style="text-align:center;">Login</h1>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Benutzername" required />
+      <input type="password" id="password" placeholder="Passwort" required />
+      <button type="submit">Einloggen</button>
+    </form>
+  </div>
+
+  <div id="mainContainer" class="hidden">
+    <div class="container">
+      <div class="creator-note">Erstellt von Justus</div>
+      <h1>Lern- und LZK-Trainer</h1>
+
+      <div id="fileSelectionContainer">
+        <h2>Bitte Fragen-XLSX-Datei auswählen:</h2>
+        <select id="fileSelect">
+          <option value="">-- Dateien werden geladen --</option>
+        </select>
+      </div>
+
+      <div id="modeSelection" class="hidden">
+        <h2>Bitte Trainingsmodus wählen:</h2>
+        <button id="lzkModeBtn">LZK-Modus (Zeitlimit)</button>
+        <button id="learnModeBtn">Lern-Modus (kein Zeitlimit)</button>
+      </div>
+
+      <div id="settingsContainer" class="hidden">
+        <h2>Einstellungen</h2>
+        <label for="questionCount">Anzahl der Fragen:</label>
+        <select id="questionCount">
+          <option value="10">10 Fragen</option>
+          <option value="15">15 Fragen</option>
+          <option value="20" selected>20 Fragen</option>
+          <option value="25">25 Fragen</option>
+          <option value="30">30 Fragen</option>
+          <option value="35">35 Fragen</option>
+          <option value="40">40 Fragen</option>
+        </select>
+
+        <div id="timeLimitContainer" class="hidden">
+          <label for="timeLimit">Zeit pro Frage (Sekunden):</label>
+          <select id="timeLimit">
+            <option value="30">30 Sekunden</option>
+            <option value="40">40 Sekunden</option>
+            <option value="50">50 Sekunden</option>
+            <option value="60" selected>60 Sekunden</option>
+          </select>
+        </div>
+
+        <button id="startQuizBtn">Quiz starten</button>
+      </div>
+
+      <div id="quizContainer" class="hidden">
+        <div id="timer" class="hidden"></div>
+        <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
+        <h2>Frage <span id="currentQuestion">1</span> von <span id="totalQuestions">0</span></h2>
+
+        <div class="question-container">
+          <div id="questionText" class="question"></div>
+          <div id="optionsContainer" class="options-container"></div>
+        </div>
+
+        <div class="button-group">
+          <button id="confirmBtn">Antwort bestätigen</button>
+          <button id="nextBtn" class="hidden" disabled>Nächste Frage</button>
+        </div>
+
+        <div id="feedbackContainer" class="answer-feedback hidden"></div>
+      </div>
+
+      <div id="resultContainer">
+        <h2>Ergebnisübersicht</h2>
+        <div id="scoreDisplay" class="score-display"></div>
+        <table id="resultTable">
+          <thead>
+            <tr>
+              <th>Frage</th>
+              <th>Ihre Antwort</th>
+              <th>Richtige Antwort</th>
+              <th>Erklärung</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div style="text-align:center; margin-top:20px;">
+          <button id="restartBtn">Neues Quiz starten</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="adminContainer" class="hidden">
+    <div class="container">
+      <button id="themeToggleAdmin" class="theme-toggle" aria-label="Theme umschalten">🌓</button>
+      <h1>Admin-Bereich</h1>
+
+      <div id="userManagementSection" class="admin-section">
+        <h2>Benutzerverwaltung</h2>
+        <div id="userList">
+          <h3>Vorhandene Benutzer:</h3>
+          <div id="existingUsers" class="user-management"></div>
+        </div>
+
+        <h2>Neuen Benutzer hinzufügen</h2>
+        <form id="addUserForm">
+          <input type="text" id="newUsername" placeholder="Benutzername" required />
+          <input type="password" id="newPassword" placeholder="Passwort" required />
+          <select id="newUserRole" required>
+            <option value="">-- Rolle auswählen --</option>
+            <option value="admin">Administrator</option>
+            <option value="user">Standard-Benutzer</option>
+          </select>
+          <button type="submit">Benutzer hinzufügen</button>
+        </form>
+      </div>
+
+      <div id="tempUsersSection" class="admin-section hidden">
+        <h2>Temporäre Benutzer</h2>
+        <div class="temp-user-form">
+          <h3>Neuen temporären Benutzer erstellen</h3>
+          <form id="addTempUserForm">
+            <label for="tempUsername">Benutzername:</label>
+            <input type="text" id="tempUsername" placeholder="Benutzername" required />
+            <label for="tempPassword">Passwort:</label>
+            <input type="password" id="tempPassword" placeholder="Passwort" required />
+            <label for="tempDays">Gültig für (Tage):</label>
+            <select id="tempDays" required>
+              <option value="1">1 Tag</option>
+              <option value="7">7 Tage</option>
+              <option value="14">14 Tage</option>
+              <option value="30" selected>30 Tage</option>
+            </select>
+            <button type="submit">Temporären Benutzer erstellen</button>
+          </form>
+          <h3 style="margin-top:30px;">Aktive temporäre Benutzer</h3>
+          <div id="tempUsersList" class="user-management"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <a href="https://www.paypal.me/ginsoakihiko1" class="donate-button" target="_blank">Spenden/Unterstützen</a>
+
+  <script src="js/theme.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

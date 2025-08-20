@@ -1,0 +1,41 @@
+<VirtualHost *:8080>
+    ServerName localhost
+    DocumentRoot /var/www/quiz
+    DirectoryIndex index.html
+
+    <Directory /var/www/quiz>
+        Options +Indexes +FollowSymLinks +MultiViews
+        AllowOverride None
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
+<VirtualHost *:8099>
+    ServerName localhost
+    ServerAlias 127.0.0.1 192.168.0.3 localhost geilefuechselab
+
+    DocumentRoot /var/www/quiz
+    DirectoryIndex index.html index.php
+
+    # Alias für PHP-Verzeichnis hinzufügen
+    Alias /php /var/www/quiz/php
+    
+    <Directory /var/www/quiz>
+        Options +Indexes +FollowSymLinks +MultiViews
+        AllowOverride None
+        Require all granted
+    </Directory>
+
+    # Separates Directory für PHP-Verzeichnis
+    <Directory /var/www/quiz/php>
+        Options -Indexes +FollowSymLinks
+        AllowOverride None
+        Require all granted
+    </Directory>
+
+    ErrorLog /var/log/apache2/8099_error.log
+    CustomLog /var/log/apache2/8099_access.log combined
+</VirtualHost>

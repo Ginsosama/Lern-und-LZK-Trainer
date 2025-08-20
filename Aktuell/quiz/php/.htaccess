@@ -1,0 +1,27 @@
+# Verhindert den direkten Zugriff auf PHP-Dateien im Verzeichnis
+<Files "*.php">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+# Erlaubt den Zugriff auf notwendige Dateien, z.B. für AJAX-Anfragen
+<Files "get_users.php">
+    Allow from all
+</Files>
+
+<Files "get_temp_users.php">
+    Allow from all
+</Files>
+
+<Files "add_user.php">
+    Allow from all
+</Files>
+
+<Files "add_temp_user.php">
+    Allow from all
+</Files>
+
+# Optional: Falls du eine Datei wie db.php schützen willst, kannst du sie auch explizit verbieten
+<Files "db.php">
+    Deny from all
+</Files>

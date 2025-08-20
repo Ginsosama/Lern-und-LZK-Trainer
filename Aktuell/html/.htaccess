@@ -1,0 +1,4 @@
+RewriteEngine On
+RewriteRule ^save$   api/save.php   [L]
+RewriteRule ^upload$ api/upload.php [L]
+RewriteRule ^list$   api/list.php   [L]

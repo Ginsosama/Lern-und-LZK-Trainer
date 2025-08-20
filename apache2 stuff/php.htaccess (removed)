@@ -1,0 +1,26 @@
+# Apache 2.4+: Standard alle .php sperren, nur explizit erlaubte freigeben
+<FilesMatch "\.php$">
+    Require all denied
+</FilesMatch>
+
+# Erlaubte Endpunkte für AJAX
+<Files "login.php">
+    Require all granted
+</Files>
+<Files "logout.php">
+    Require all granted
+</Files>
+<Files "session_user.php">
+    Require all granted
+</Files>
+<Files "get_users.php">
+    Require all granted
+</Files>
+<Files "add_user.php">
+    Require all granted
+</Files>
+<Files "edit_user.php">
+    Require all granted
+</Files>
+<Files "delete_user.php">
+    Require all granted

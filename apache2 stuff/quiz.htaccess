@@ -1,0 +1,8 @@
+DirectoryIndex index.html index.php
+Options -Indexes +FollowSymLinks
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Entferne RewriteBase, da es unnötig ist
+    # RewriteBase /
+</IfModule>
