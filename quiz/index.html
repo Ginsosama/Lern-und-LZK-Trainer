@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <!-- Meta-Zeichenkodierung muss ganz am Anfang stehen -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lern- und LZK-Trainer</title>
+
+  <!-- Statisches CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+
+  <!-- Fallback-Klasse -->
+  <style>.hidden{display:none!important}</style>
+
+  <!-- XLSX Bibliothek -->
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <button id="themeToggle" class="theme-toggle">🌓</button>
+  <button id="adminMenuToggle" class="admin-menu-toggle">☰</button>
+
+  <div id="adminMenu" class="admin-menu">
+    <div class="admin-menu-header">Admin-Bereich</div>
+    <a href="#" class="admin-menu-item active" data-section="userManagement">Benutzerverwaltung</a>
+    <a href="#" class="admin-menu-item" data-section="addUser">Benutzer hinzufügen</a>
+    <a href="#" class="admin-menu-item" data-section="tempUsers">Temporäre Benutzer</a>
+    <a href="#" class="admin-menu-item" data-section="fileUpload">Dateien hochladen</a>
+    <a href="#" class="admin-menu-item" data-section="fileEdit">Dateien bearbeiten</a>
+    <a href="#" class="admin-menu-item" data-section="dbTest">DB-Verbindung testen</a>
+    <a href="#" class="admin-menu-item" data-section="nameRoulette">Namensroulette</a>
+    <a href="#" class="admin-menu-item" data-section="backToMain">Zurück zum Hauptmenü</a>
+  </div>
+
+  <!-- Login -->
+  <div id="loginContainer">
+    <h1 style="text-align:center">Login</h1>
+    <form id="loginForm" action="javascript:void(0)" novalidate onsubmit="return false">
+      <!-- WICHTIG: name-Attribute, damit FormData/JSON korrekt -->
+      <input type="text" id="username" name="username" placeholder="Benutzername" autocomplete="username" required>
+      <input type="password" id="password" name="password" placeholder="Passwort" autocomplete="current-password" required>
+      <button type="submit" id="loginButton">Einloggen</button>
+    </form>
+    <div id="loginError" class="error-message"></div>
+  </div>
+
+  <!-- Hauptmenü nach Login -->
+  <div id="mainMenuContainer" class="hidden">
+    <h1>Hauptmenü</h1>
+    <button id="menuTrainerBtn" class="main-menu-button">Lern-/LZK-Trainer</button>
+    <button id="menuMultiplayerBtn" class="main-menu-button">Multiplayer</button>
+    <button id="menuToolsBtn" class="main-menu-button">Tools</button>
+  </div>
+
+  <div id="multiplayerContainer" class="hidden">
+    <button id="backMultiplayerBtn" class="back-button">Zurück zum Hauptmenü</button>
+    <h2>Multiplayer</h2>
+    <p>Funktionen folgen.</p>
+  </div>
+
+<div id="toolsContainer" class="hidden">
+  <button id="backToolsBtn" class="back-button">Zurück zum Hauptmenü</button>
+  <h2>Tools</h2>
+  <div id="subnetTool">
+    <h3>Subnetting</h3>
+    <input id="subnetInput" placeholder="IP/Prefix z.B. 192.168.0.0/24">
+    <button id="subnetBtn">Berechnen</button>
+    <div id="subnetResult"></div>
+  </div>
+  <div id="conversionTool">
+    <h3>Zahlensysteme</h3>
+    <input id="convInput" placeholder="Dezimalzahl">
+    <button id="convBtn">Umrechnen</button>
+    <div id="convResult"></div>
+  </div>
+</div>
+
+<div id="chatContainer" class="hidden">
+  <h2>Chat</h2>
+  <div id="onlineUsers" class="chat-users"></div>
+  <div id="chatMessages" class="chat-messages"></div>
+  <input id="chatInput" type="text" placeholder="Nachricht">
+  <button id="chatSendBtn">Senden</button>
+</div>
+
+  <!-- Hauptbereich -->
+  <div id="mainContainer" class="hidden">
+    <button id="backTrainerBtn" class="back-button">Zurück zum Hauptmenü</button>
+    <div class="container">
+      <div class="creator-note">Erstellt von Justus</div>
+      <h1>Lern- und LZK-Trainer</h1>
+
+      <div id="fileSelectionContainer">
+        <h2>Bitte Fragen-XLSX-Datei auswählen:</h2>
+        <select id="fileSelect">
+          <option value="">-- Dateien werden geladen --</option>
+        </select>
+      </div>
+
+      <div id="modeSelection" class="hidden">
+        <h2>Bitte Trainingsmodus wählen:</h2>
+        <button id="lzkModeBtn">LZK-Modus (60 Sekunden pro Frage)</button>
+        <button id="learnModeBtn">Lern-Modus (kein Zeitlimit)</button>
+      </div>
+
+      <div id="settingsContainer" class="hidden">
+        <h2>Einstellungen</h2>
+        <label for="questionCount">Anzahl der Fragen:</label>
+        <select id="questionCount">
+          <option value="10">10 Fragen</option>
+          <option value="15">15 Fragen</option>
+          <option value="20" selected>20 Fragen</option>
+          <option value="25">25 Fragen</option>
+          <option value="30">30 Fragen</option>
+          <option value="35">35 Fragen</option>
+          <option value="40">40 Fragen</option>
+        </select>
+
+        <div id="timeLimitContainer" class="hidden">
+          <label for="timeLimit">Zeit pro Frage (Sekunden):</label>
+          <select id="timeLimit">
+            <option value="30">30 Sekunden</option>
+            <option value="40">40 Sekunden</option>
+            <option value="50">50 Sekunden</option>
+            <option value="60" selected>60 Sekunden</option>
+          </select>
+        </div>
+
+        <button id="startQuizBtn">Quiz starten</button>
+      </div>
+
+      <div id="quizContainer" class="hidden">
+        <div id="timer" class="hidden"></div>
+        <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
+        <h2>Frage <span id="currentQuestion">1</span> von <span id="totalQuestions">0</span></h2>
+
+        <div class="question-container">
+          <div id="questionText" class="question"></div>
+          <div id="optionsContainer" class="options-container"></div>
+        </div>
+
+        <div class="button-group">
+          <button id="confirmBtn">Antwort bestätigen</button>
+          <button id="nextBtn" class="hidden" disabled>Nächste Frage</button>
+        </div>
+
+        <div id="feedbackContainer" class="answer-feedback hidden"></div>
+      </div>
+
+      <div id="resultContainer">
+        <h2>Ergebnisübersicht</h2>
+        <div id="scoreDisplay" class="score-display"></div>
+        <table id="resultTable">
+          <thead>
+            <tr>
+              <th>Frage</th>
+              <th>Ihre Antwort</th>
+              <th>Richtige Antwort</th>
+              <th>Erklärung</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div style="text-align:center;margin-top:20px">
+          <button id="restartBtn">Neues Quiz starten</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin -->
+  <div id="adminContainer" class="hidden">
+    <div class="container">
+      <button id="themeToggleAdmin" class="theme-toggle">🌓</button>
+      <h1>Admin-Bereich</h1>
+
+      <div id="userManagementSection" class="admin-section">
+        <h2>Benutzerverwaltung</h2>
+        <div id="userList">
+          <h3>Vorhandene Benutzer:</h3>
+          <select id="roleSelect">
+            <option value="">-- Rolle auswählen --</option>
+          </select>
+          <select id="userSelect" disabled>
+            <option value="">-- Benutzer auswählen --</option>
+          </select>
+          <div id="existingUsers" class="user-management"></div>
+        </div>
+      </div>
+
+      <div id="addUserSection" class="admin-section hidden">
+        <h2>Neuen Benutzer hinzufügen</h2>
+        <form id="addUserForm">
+          <input type="text" id="newUsername" placeholder="Benutzername" required>
+          <input type="password" id="newPassword" placeholder="Passwort" maxlength="20" required>
+          <select id="newUserRole" required>
+            <option value="">-- Rolle auswählen --</option>
+            <option value="owner">Owner</option>
+            <option value="admin">Admin</option>
+            <option value="trainer">Trainer</option>
+            <option value="user">User</option>
+          </select>
+          <button type="submit">Benutzer hinzufügen</button>
+        </form>
+        <div id="addUserError" class="error-message"></div>
+      </div>
+
+      <div id="tempUsersSection" class="admin-section hidden">
+        <h2>Temporäre Benutzer</h2>
+        <div class="temp-user-form">
+          <h3>Neuen temporären Benutzer erstellen</h3>
+          <form id="addTempUserForm">
+            <label for="tempUsername">Benutzername:</label>
+            <input type="text" id="tempUsername" placeholder="Benutzername" required>
+            <label for="tempPassword">Passwort:</label>
+            <input type="password" id="tempPassword" placeholder="Passwort" required>
+            <label for="tempDays">Gültig für:</label>
+            <select id="tempDays" required>
+              <option value="1">1 Tag</option>
+              <option value="7">1 Woche</option>
+              <option value="14">2 Wochen</option>
+              <option value="21">3 Wochen</option>
+              <option value="28">4 Wochen</option>
+              <option value="365">1 Jahr</option>
+              <option value="730">2 Jahre</option>
+            </select>
+            <button type="submit">Temporären Benutzer erstellen</button>
+          </form>
+
+          <h3 style="margin-top:30px">Aktive temporäre Benutzer</h3>
+          <div id="tempUsersList" class="user-management"></div>
+        </div>
+      </div>
+
+      <div id="nameRouletteSection" class="admin-section hidden">
+        <h2>Namensroulette</h2>
+        <textarea id="rouletteNames" placeholder="Ein Name pro Zeile"></textarea>
+        <button id="startRouletteBtn">Start</button>
+        <div id="rouletteCurrent" style="margin-top:10px"></div>
+        <button id="rouletteCorrectBtn" class="hidden">Richtig</button>
+        <button id="rouletteWrongBtn" class="hidden">Falsch/Abwesend</button>
+      </div>
+
+      <div id="fileUploadSection" class="admin-section hidden">
+        <h2>Dateien hochladen</h2>
+        <div class="file-upload-container">
+          <form id="fileUploadForm">
+            <label for="fileToUpload" class="file-upload-label">Wählen Sie eine Excel-Datei (.xlsx) aus:</label>
+            <input type="file" id="fileToUpload" class="file-upload-input" accept=".xlsx" required>
+            <label for="fileName" class="file-upload-label">Dateiname (ohne Erweiterung):</label>
+            <input type="text" id="fileName" class="file-upload-input" placeholder="z.B. fragen_2023" required>
+            <button type="submit" class="file-upload-button">Datei hochladen</button>
+          </form>
+          <div id="uploadStatus" style="margin-top:15px"></div>
+        </div>
+      </div>
+
+      <div id="fileEditSection" class="admin-section hidden">
+        <h2>Dateien bearbeiten</h2>
+        <div class="file-edit-container">
+          <label for="editFileSelect">Datei auswählen:</label>
+          <select id="editFileSelect" class="file-upload-input">
+            <option value="">-- Datei wird geladen --</option>
+          </select>
+          <button id="deleteFileBtn" class="file-upload-button" style="margin-top:10px">Datei löschen</button>
+
+          <div id="excelEditor" class="excel-editor hidden">
+            <table id="excelTable">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+            <div class="excel-editor-buttons">
+              <button id="saveExcelBtn">Änderungen speichern</button>
+              <button id="cancelEditBtn">Abbrechen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="dbTestSection" class="admin-section hidden">
+        <h2>Datenbankverbindung testen</h2>
+        <button id="dbTestButton">Test starten</button>
+        <div id="dbTestResult" style="margin-top:15px"></div>
+      </div>
+    </div>
+  </div>
+
+  <a href="https://www.paypal.me/ginsoakihiko1" class="donate-button" target="_blank">Spenden/Unterstützen</a>
+
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous"></script>
+
+  <!-- Hauptskripte (reihenfolgebeibehalten) -->
+  <script src="theme.js" defer></script>
+  <script src="auth.js" defer></script>
+  <script src="dragdrop.js" defer></script>
+  <script src="quiz.js" defer></script>
+  <script src="admin.js" defer></script>
+</body>
+</html>
